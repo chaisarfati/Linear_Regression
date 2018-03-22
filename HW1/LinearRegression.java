@@ -26,7 +26,7 @@ public class LinearRegression implements Classifier {
 	}
 	
 	private void findAlpha(Instances data) throws Exception {
-		
+
 	}
 	
 	/**
@@ -38,23 +38,20 @@ public class LinearRegression implements Classifier {
 	 * @throws Exception
 	 */
 	private static double[] gradientDescent(Instances trainingData) throws Exception {
-        double alpha = 0.05;
+        double alpha = 0.03;
 
-        // CREATES AN ARRAY OF THETAS WITH GUESS = 1
+        // weights array is thetas guess = 1 and temp store temporary thetas
         int numAttributes = trainingData.numAttributes() - 1;
         double[] weights = new double[numAttributes];
+        double[] temp = new double[numAttributes];
+
         for (int i = 0; i < weights.length; i++) {
             weights[i] = 1;
-        }
-        // CREATES ARRAY OF TEMPS THETAS
-        double[] temp = new double[numAttributes];
-        for (int i = 0; i < temp.length; i++) {
             temp[i] = 0;
         }
 
-        double sum, inSum, partDerivative = 0;
-
-        // While the error is too big do this
+        double sum;
+        double[] xi;
 
         // For all thetas
         for (int k = 0; k < temp.length; k++) {
@@ -62,23 +59,20 @@ public class LinearRegression implements Classifier {
 
             // Sum on all instances
             for (int i = 0; i < trainingData.numInstances(); i++) {
-                inSum = 0;
-
-                for (int l = 0; l < weights.length; l++) {
-                    inSum += (weights[l] * trainingData.instance(i).value(l));
-                }
-                inSum -= trainingData.instance(i).value(trainingData.numAttributes() - 1);
-                inSum *= trainingData.instance(i).value(k);
-                sum += inSum;
+                xi = trainingData.instance(i).toDoubleArray();
+                sum += (scalarProduct(xi, weights) - xi[xi.length - 1]) * xi[k];
             }
-            partDerivative = (1/((double)trainingData.numInstances())) * sum;
-            temp[k] = weights[k] - (alpha * partDerivative);
+
+            // Update temp
+            temp[k] = weights[k] - alpha *( (1/((double)trainingData.numInstances())) * sum );
         }
 
+        // Update the actual thetas
         for (int i = 0; i < weights.length; i++) {
             weights[i] = temp[i];
         }
 
+        // !! FOR TESTING !!
         String s = "";
         for (int i = 0; i < weights.length; i++) {
             s += " Theta"+i+" = " + weights[i];
@@ -118,7 +112,7 @@ public class LinearRegression implements Classifier {
             sum += Math.pow(regressionPrediction(data.instance(i)) -
                     data.instance(i).value(data.numAttributes()-1), 2);
         }
-        return 0.5 * (1/(double)data.numInstances()) * sum;
+        return  (1/(2.0*(double)data.numInstances())) * sum;
 	}
     
     @Override
@@ -141,7 +135,7 @@ public class LinearRegression implements Classifier {
 
 	private static double scalarProduct(double[] v1, double[] v2) {
         double result = 0;
-        for (int i = 0; i <v1.length; i++) {
+        for (int i = 0; i <v1.length-1; i++) {
             result += v1[i] * v2[i];
         }
         return result;
@@ -158,8 +152,6 @@ public class LinearRegression implements Classifier {
         }
 
         gradientDescent(data);
-
-
 
     }
 }
