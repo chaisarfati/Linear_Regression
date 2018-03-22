@@ -37,8 +37,12 @@ public class MainHW1 {
 	
 	public static void main(String[] args) throws Exception {
 		//load data
+        Instances data = loadData("wind_training.txt");
+        LinearRegression linearRegression = new LinearRegression();
+        linearRegression.buildClassifier(data);
 		
 		//find best alpha and build classifier with all attributes
+
 
    		//build classifiers with all 3 attributes combinations
 		
