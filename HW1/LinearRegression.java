@@ -22,30 +22,42 @@ public class LinearRegression implements Classifier {
 	public void buildClassifier(Instances trainingData) throws Exception {
 		m_ClassIndex = trainingData.classIndex();
 		//TODO: complete this method
-        findAlpha(trainingData);
-		m_coefficients = gradientDescent(trainingData);
+        m_coefficients = gradientDescent(trainingData);
+
 	}
 	
 	private void findAlpha(Instances data) throws Exception {
         double[] errors = new double[17];
         for (int i = -17; i < 0; i++) {
             m_alpha = Math.pow(3, i);
-            double error = Double.POSITIVE_INFINITY, currentError = 0;
+            gradientDescent(data);
+            double error = calculateMSE(data), currentError = 0;
             for (int j = 0; j < 20000; j++) {
-                m_coefficients = gradientDescent(data);
-                if(j%100==0){
-                    //calculate error and compare to the previous one
+                gradientDescent(data);
+                if(j%100==1){
                     currentError = calculateMSE(data);
                     if(currentError > error){
-                        errors[i+17] = error;
+                        currentError = error;
                         break;
                     }
                     error = currentError;
                 }
-                errors[i+17] = currentError;
             }
+            errors[i+17] = currentError;
         }
         m_alpha = Math.pow(3, findMinIndex(errors) - 17);
+        System.out.println(m_alpha);
+
+        double error = 100;
+        double currentError = calculateMSE(data);
+        while(currentError > 0.003){
+            error = currentError;
+            for (int i = 0; i < 100; i++) {
+                gradientDescent(data);
+            }
+            currentError = calculateMSE(data);
+            System.out.println(currentError);
+        }
     }
 	
 	/**
@@ -57,66 +69,46 @@ public class LinearRegression implements Classifier {
 	 * @throws Exception
 	 */
 	private double[] gradientDescent(Instances trainingData) throws Exception {
-        int numAttributes = trainingData.numAttributes();
-        int numInstances = trainingData.numInstances();
+
+
+        int m = trainingData.numInstances();
 
         if(m_coefficients == null) {
-            m_coefficients = new double[numAttributes];
+            m_coefficients = new double[m_truNumAttributes];
             for (int i = 0; i < m_coefficients.length; i++) {
                 m_coefficients[i] = 1;
             }
         }
-
-        double[] temp = new double[numAttributes];
-        double partDerivative;
-        double sum, inSum;
+        double[] temp = new double[m_truNumAttributes];
 
         // For all thetas
         for (int k = 0; k < m_coefficients.length; k++) {
-            sum = 0;
 
-            // Sum on all instances
-            for (int i = 0; i < trainingData.numInstances(); i++) {
 
-                inSum = 0;
-                /*if(k==0){
-                    sum += m_coefficients[0] + scalarProduct(m_coefficients, xi) - xi[xi.length - 1];
-                }else{
-                    sum += m_coefficients[0];
-                    sum += scalarProduct(m_coefficients, xi);
-                    sum -= xi[xi.length - 1];
-                    sum *= xi[k - 1];
-                }*/
-
-                double innerProduct = 0;
-                for (int l = 1; i < numAttributes; i++){
-                    innerProduct +=
-                            trainingData.instance(i).value(l-1) * m_coefficients[l];
-                }
-                innerProduct += m_coefficients[0];
-
-                inSum += innerProduct - trainingData.instance(i).value(numAttributes-1);
+            double partDerivative = 0;
+            for (int i = 0; i < m; i++) {
+                double xik = 1;
                 if(k!=0) {
-                    inSum *= trainingData.instance(i).value(k);
+                    xik = trainingData.instance(i).value(k);
                 }
-                sum += inSum;
+                Instance instance = trainingData.instance(i);
+                if(k==0){
+                    partDerivative += (regressionPrediction(instance) - instance.value(m_ClassIndex));
+                }else{
+                    partDerivative += (regressionPrediction(instance) - instance.value(m_ClassIndex))*xik;
+                }
             }
+            partDerivative = 1/m * partDerivative;
 
             // Update temp
-            temp[k] = m_coefficients[k] - m_alpha * ((1/((double)numInstances)) * sum );
+            temp[k] = m_coefficients[k] - m_alpha * partDerivative;
+
         }
 
         // Update the actual thetas
         for (int i = 0; i < m_coefficients.length; i++) {
             m_coefficients[i] = temp[i];
         }
-
-        // !! FOR TESTING !!
-        String s = "";
-        for (int i = 0; i < m_coefficients.length; i++) {
-            s += " Theta"+i+" = " + m_coefficients[i];
-        }
-        System.out.println(s);
 
         return m_coefficients;
 	}
@@ -130,9 +122,9 @@ public class LinearRegression implements Classifier {
 	 * @throws Exception
 	 */
 	public double regressionPrediction(Instance instance) throws Exception {
-        double result = 0;
-        for (int i = 0; i < instance.numAttributes() - 1; i++) {
-            result += instance.value(i) * m_coefficients[i];
+        double result = m_coefficients[0];
+        for (int i = 1; i < instance.numAttributes(); i++) {
+            result += m_coefficients[i] * (instance.value(i-1));
         }
         return result;
 	}
@@ -147,11 +139,13 @@ public class LinearRegression implements Classifier {
 	 */
 	public double calculateMSE(Instances data) throws Exception {
         double sum = 0;
-        for (int i = 0; i < m_coefficients.length; i++) {
-            sum += Math.pow(scalarProduct(m_coefficients, data.instance(i).toDoubleArray()) -
-                    data.instance(i).value(data.numAttributes()-1), 2);
+        double m = data.numInstances();
+        for (int i = 0; i < data.numInstances(); i++) {
+            sum += (regressionPrediction(data.instance(i)) -
+                    data.instance(i).value(data.numAttributes()-1))*(regressionPrediction(data.instance(i)) -
+                    data.instance(i).value(data.numAttributes()-1));
         }
-        return  (1/(2.0*(double)data.numInstances())) * sum;
+        return  (1/(2.0*m)) * sum;
 	}
     
     @Override
@@ -172,23 +166,28 @@ public class LinearRegression implements Classifier {
 		return null;
 	}
 
-	private static double scalarProduct(double[] coeff, double[] instance) {
-        double result = 0;
-        for (int i = 1; i <coeff.length; i++) {
-            result += coeff[i] * instance[i-1];
-        }
-        return result;
-    }
-
     private static int findMinIndex(double[] arr){
         double min = arr[0];
         int j = 0;
         for (int i = 1; i < arr.length; i++) {
-            if (min > arr[i]) min = arr[i];
-            j= i;
+            if (min > arr[i]) {
+                min = arr[i];
+                j = i;
+            }
         }
         return j;
     }
+
+    /*private static double partialDerivative(int k, Instances data){
+        int m = data.numInstances();
+        double result = 0;
+        for (int i = 0; i < m; i++) {
+            double xik = data.instance(i).value(k);
+            Instance instance = data.instance(i);
+            result += (regressionPrediction(instance) - instance.value(data.numAttributes()-1))*xik;
+        }
+        return 1/m * result;
+    }*/
 
     public static void main(String[] args) throws Exception {
 
@@ -200,9 +199,10 @@ public class LinearRegression implements Classifier {
             e.printStackTrace();
         }
 
-
+        data.setClass(data.attribute(data.numAttributes()-1));
+        System.out.println(data.classIndex());
+        System.out.println(data.classAttribute());
         LinearRegression linear = new LinearRegression();
-        linear.gradientDescent(data);
-
+        linear.findAlpha(data);
     }
 }

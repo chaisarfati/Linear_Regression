@@ -17,7 +17,6 @@ public class MainHW1 {
 		} catch (FileNotFoundException ex) {
 			System.err.println("File not found: " + filename);
 		}
-
 		return inputReader;
 	}
 		
@@ -40,7 +39,7 @@ public class MainHW1 {
         Instances data = loadData("wind_training.txt");
         LinearRegression linearRegression = new LinearRegression();
         linearRegression.buildClassifier(data);
-		
+
 		//find best alpha and build classifier with all attributes
 
 
