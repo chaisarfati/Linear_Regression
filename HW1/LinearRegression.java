@@ -12,13 +12,13 @@ public class LinearRegression implements Classifier {
 	private double[] m_coefficients;
 	private double m_alpha;
 
+
 	//the method which runs to train the linear regression predictor, i.e.
 	//finds its weights.
 	@Override
 	public void buildClassifier(Instances trainingData) throws Exception {
 		m_ClassIndex = trainingData.classIndex();
-        m_truNumAttributes = trainingData.numAttributes();
-
+        
         if(m_coefficients == null) {
             m_coefficients = new double[m_truNumAttributes];
             for (int i = 0; i < m_coefficients.length; i++) {
@@ -26,12 +26,8 @@ public class LinearRegression implements Classifier {
             }
         }
 
-
-
         findAlpha(trainingData);
-        m_coefficients = gradientDescent(trainingData);
-
-
+        //m_coefficients = gradientDescent(trainingData);
 	}
 
 	private void findAlpha(Instances data) throws Exception {
@@ -71,9 +67,7 @@ public class LinearRegression implements Classifier {
 
             // For all thetas
             for (int k = 0; k < m_truNumAttributes; k++) {
-
-                temp[k] = m_coefficients[k] + m_alpha * adjustDirection(trainingData, k);
-
+                temp[k] = m_coefficients[k] - m_alpha * adjustDirection(trainingData, k);
             }
 
             // Update the actual thetas
@@ -113,7 +107,7 @@ public class LinearRegression implements Classifier {
         double m = data.numInstances();
         for (int i = 0; i < m; i++) {
             sum += Math.pow(regressionPrediction(data.instance(i)) -
-                    data.instance(i).value(data.numAttributes()-1), 2);
+                    data.instance(i).value(m_ClassIndex), 2);
         }
         return sum / (2.0 * m);
 	}
