@@ -1,6 +1,7 @@
 package HW1;
 
 import weka.core.Instances;
+import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -44,23 +45,35 @@ public class MainHW1 {
         LinearRegression model = new LinearRegression();
         model.buildClassifier(training_data);
 
-        double testErrorAll = model.calculateMSE(testing_data),
-                trainingErrorAll = model.calculateMSE(training_data);
+        System.out.println("The chosen alpha is: " + model.getM_alpha() + "\n" +
+        "Training error with all features is: " + model.calculateMSE(training_data) + "\n" +
+                        "Test error with all features is: " + model.calculateMSE(testing_data) + "\n");
 
-        System.out.println("Training error : " + trainingErrorAll);
-        System.out.println("Testing error : " + testErrorAll);
-        System.out.println("Best alpha : " + model.getM_alpha());
+        model.setM_truNumAttributes(4);
+        model.resetCoefficients();
+        Remove remove = new Remove();
+        remove.setInvertSelection(true);
+        int[] attributes = new int[3];
 
-        /*
    		//build classifiers with all 3 attributes combinations
-        for (int i = 0; i < 13; i++) {
-            for (int j = i + 1; j < 14; j++) {
-                for (int k = j + 1; k < 15; k++) {
+        for (int i = 0; i < 12; i++) {
+            attributes[0] = i;
+            for (int j = i + 1; j < 13; j++) {
+                attributes[1] = j;
+                for (int k = j + 1; k < 14; k++) {
+                    attributes[2] = k;
 
+                    remove.setAttributeIndicesArray(attributes);
+                    remove.setInputFormat(testing_data);
+                    remove.setInputFormat(training_data);
+                    model.gradientDescentAfterAlpha(training_data);
+
+                    System.out.println(training_data.attribute(i).name() + " " + training_data.attribute(j).name() + " " + training_data.attribute(k).name() +
+                            " " + "Training error : " + model.calculateMSE(training_data));
                 }
             }
         }
-        */
+
 
 	}
 

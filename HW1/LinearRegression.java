@@ -54,7 +54,6 @@ public class LinearRegression implements Classifier {
                         coeff[i+17][k] = m_coefficients[k];
                     }
 
-                    System.out.println(prevError);
                     currentError = calculateMSE(data);
                     if(currentError > prevError){
                         prevError = currentError;
@@ -69,10 +68,6 @@ public class LinearRegression implements Classifier {
         }
         m_alpha = Math.pow(3, findMinIndex(errors) - 17);
         m_coefficients = coeff[findMinIndex(errors)];
-
-        System.out.println("!!!!!!!!!!! " + m_alpha);
-
-        //gradientDescentAfterAlpha(data);
     }
 
 	/**
@@ -100,14 +95,18 @@ public class LinearRegression implements Classifier {
         return m_coefficients;
 	}
 
+    /**
+     * The gradient descent we run after finding the optimal alpha
+     * @param trainingData
+     * @return
+     * @throws Exception
+     */
     public double[] gradientDescentAfterAlpha(Instances trainingData) throws Exception {
         double[] temp = new double[m_coefficients.length];
-        double prevError = calculateMSE(trainingData);
-        double error = 0;
-        int counter = 1;
-        boolean dontstop = true;
+        double prevError = calculateMSE(trainingData), currentError = 0;
 
-        while (dontstop) {
+        for (int j = 0; j < 20000; j++) {
+
             // For all thetas
             for (int k = 0; k < m_truNumAttributes; k++) {
                 temp[k] = m_coefficients[k] - m_alpha * adjustDirection(trainingData, k);
@@ -118,22 +117,18 @@ public class LinearRegression implements Classifier {
                 m_coefficients[i] = temp[i];
             }
 
-            if(counter==100){
-                prevError = calculateMSE(trainingData);
-            }
-            if(counter==200){
-                counter = 1;
-                error = calculateMSE(trainingData);
-                if(Math.abs(error - prevError) > 0.003){
-                    dontstop = false;
+            if (j % 100 == 0) {
+                currentError = calculateMSE(trainingData);
+                if (Math.abs(currentError - prevError) < 0.003) {
+                    return m_coefficients;
+                } else {
+                    prevError = currentError;
                 }
             }
-            counter++;
-
         }
-
         return m_coefficients;
     }
+
 
 	/**
 	 * Returns the prediction of a linear regression predictor with weights
@@ -169,6 +164,15 @@ public class LinearRegression implements Classifier {
         return sum / (2.0 * m);
 	}
 
+    /**
+     * Helper method that returns the partial derivative of the error function
+     * with respect to the j-th coefficient.
+     *
+     * @param instances
+     * @param j
+     * @return
+     * @throws Exception
+     */
 	public double adjustDirection(Instances instances, int j) throws Exception {
         double sum = 0;
         if(j==0){
@@ -184,10 +188,33 @@ public class LinearRegression implements Classifier {
         return  sum/((double)instances.numInstances());
     }
 
+    /**
+     * Resets all the coefficients of the model to 1
+     *
+     */
     public void resetCoefficients(){
         for (int i = 0; i < m_coefficients.length; i++) {
             m_coefficients[i] = 1;
         }
+    }
+
+    /**
+     * Helper static method that returns the index of the minimum entry
+     * in the array given as argument
+     *
+     * @param arr
+     * @return
+     */
+    private static int findMinIndex(double[] arr){
+        double min = arr[0];
+        int j = 0;
+        for (int i = 1; i < arr.length; i++) {
+            if (min > arr[i]) {
+                min = arr[i];
+                j = i;
+            }
+        }
+        return j;
     }
 
     @Override
@@ -207,17 +234,5 @@ public class LinearRegression implements Classifier {
 		// Don't change
 		return null;
 	}
-
-    private static int findMinIndex(double[] arr){
-        double min = arr[0];
-        int j = 0;
-        for (int i = 1; i < arr.length; i++) {
-            if (min > arr[i]) {
-                min = arr[i];
-                j = i;
-            }
-        }
-        return j;
-    }
 
 }
