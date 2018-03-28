@@ -1,6 +1,5 @@
 package HW1;
 
-import weka.core.Attribute;
 import weka.core.Instances;
 
 import java.io.BufferedReader;
@@ -48,21 +47,21 @@ public class MainHW1 {
         double testErrorAll = model.calculateMSE(testing_data),
                 trainingErrorAll = model.calculateMSE(training_data);
 
+        System.out.println("Training error : " + trainingErrorAll);
+        System.out.println("Testing error : " + testErrorAll);
+        System.out.println("Best alpha : " + model.getM_alpha());
 
+        /*
    		//build classifiers with all 3 attributes combinations
-        for (int i = 0; i < training_data.numAttributes(); i++) {
-            for (int j = i+1; j < training_data.numAttributes(); j++) {
-                for (int k = i+2; k < training_data.numAttributes(); k++) {
-                    Attribute att1 = training_data.attribute(i);
-                    Attribute att2 = training_data.attribute(j);
-                    Attribute att3 = training_data.attribute(k);
-
+        for (int i = 0; i < 13; i++) {
+            for (int j = i + 1; j < 14; j++) {
+                for (int k = j + 1; k < 15; k++) {
 
                 }
             }
         }
-        //training_data.insertAttributeAt();
-		
+        */
+
 	}
 
 }

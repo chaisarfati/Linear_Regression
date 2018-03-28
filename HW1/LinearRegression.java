@@ -13,43 +13,66 @@ public class LinearRegression implements Classifier {
 	private double m_alpha;
 
 
-	//the method which runs to train the linear regression predictor, i.e.
+    public void setM_truNumAttributes(int m_truNumAttributes) {
+        this.m_truNumAttributes = m_truNumAttributes;
+    }
+
+    public double getM_alpha() {
+        return m_alpha;
+    }
+
+    //the method which runs to train the linear regression predictor, i.e.
 	//finds its weights.
 	@Override
 	public void buildClassifier(Instances trainingData) throws Exception {
 		m_ClassIndex = trainingData.classIndex();
-        
+        m_truNumAttributes = trainingData.numAttributes();
         if(m_coefficients == null) {
             m_coefficients = new double[m_truNumAttributes];
             for (int i = 0; i < m_coefficients.length; i++) {
                 m_coefficients[i] = 1;
             }
         }
-
         findAlpha(trainingData);
-        //m_coefficients = gradientDescent(trainingData);
 	}
 
-	private void findAlpha(Instances data) throws Exception {
+    private void findAlpha(Instances data) throws Exception {
         double[] errors = new double[17];
+        double[][] coeff = new double[17][m_truNumAttributes];
+
         for (int i = -17; i < 0; i++) {
             m_alpha = Math.pow(3, i);
             gradientDescent(data);
-            double error = calculateMSE(data), currentError = 0;
+            double prevError = calculateMSE(data), currentError = 0;
+
             for (int j = 0; j < 20000; j++) {
                 gradientDescent(data);
-                if(j%100==1){
-                    currentError = calculateMSE(data);
-                    if(currentError > error){
-                        currentError = error;
-                        break;
+
+                if(j%100==0){
+
+                    for (int k = 0; k < m_coefficients.length; k++) {
+                        coeff[i+17][k] = m_coefficients[k];
                     }
-                    error = currentError;
+
+                    System.out.println(prevError);
+                    currentError = calculateMSE(data);
+                    if(currentError > prevError){
+                        prevError = currentError;
+                        break;
+                    }else{
+                        prevError = currentError;
+                    }
                 }
+
             }
-            errors[i+17] = currentError;
+            errors[i+17] = prevError;
         }
         m_alpha = Math.pow(3, findMinIndex(errors) - 17);
+        m_coefficients = coeff[findMinIndex(errors)];
+
+        System.out.println("!!!!!!!!!!! " + m_alpha);
+
+        //gradientDescentAfterAlpha(data);
     }
 
 	/**
@@ -64,7 +87,6 @@ public class LinearRegression implements Classifier {
 
         double[] temp = new double[m_coefficients.length];
 
-
             // For all thetas
             for (int k = 0; k < m_truNumAttributes; k++) {
                 temp[k] = m_coefficients[k] - m_alpha * adjustDirection(trainingData, k);
@@ -77,6 +99,41 @@ public class LinearRegression implements Classifier {
 
         return m_coefficients;
 	}
+
+    public double[] gradientDescentAfterAlpha(Instances trainingData) throws Exception {
+        double[] temp = new double[m_coefficients.length];
+        double prevError = calculateMSE(trainingData);
+        double error = 0;
+        int counter = 1;
+        boolean dontstop = true;
+
+        while (dontstop) {
+            // For all thetas
+            for (int k = 0; k < m_truNumAttributes; k++) {
+                temp[k] = m_coefficients[k] - m_alpha * adjustDirection(trainingData, k);
+            }
+
+            // Update the actual thetas
+            for (int i = 0; i < m_coefficients.length; i++) {
+                m_coefficients[i] = temp[i];
+            }
+
+            if(counter==100){
+                prevError = calculateMSE(trainingData);
+            }
+            if(counter==200){
+                counter = 1;
+                error = calculateMSE(trainingData);
+                if(Math.abs(error - prevError) > 0.003){
+                    dontstop = false;
+                }
+            }
+            counter++;
+
+        }
+
+        return m_coefficients;
+    }
 
 	/**
 	 * Returns the prediction of a linear regression predictor with weights
@@ -124,7 +181,13 @@ public class LinearRegression implements Classifier {
                         * instances.instance(i).value(j-1);
             }
         }
-        return (1.0/instances.numInstances()) * sum;
+        return  sum/((double)instances.numInstances());
+    }
+
+    public void resetCoefficients(){
+        for (int i = 0; i < m_coefficients.length; i++) {
+            m_coefficients[i] = 1;
+        }
     }
 
     @Override
