@@ -1,7 +1,6 @@
 package HW1;
 
 import weka.core.Instances;
-import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -43,6 +42,11 @@ public class MainHW1 {
 
 		//find best alpha and build classifier with all attributes
         LinearRegression model = new LinearRegression();
+        int[] tocons = new int[training_data.numAttributes() - 1];
+        for (int i = 0; i < tocons.length; i++) {
+            tocons[i] = i;
+        }
+        model.setToConsider(tocons);
         model.buildClassifier(training_data);
 
         System.out.println("The chosen alpha is: " + model.getM_alpha() + "\n" +
@@ -50,9 +54,6 @@ public class MainHW1 {
                         "Test error with all features is: " + model.calculateMSE(testing_data) + "\n");
 
         model.setM_truNumAttributes(4);
-        model.resetCoefficients();
-        Remove remove = new Remove();
-        remove.setInvertSelection(true);
         int[] attributes = new int[3];
 
    		//build classifiers with all 3 attributes combinations
@@ -62,10 +63,8 @@ public class MainHW1 {
                 attributes[1] = j;
                 for (int k = j + 1; k < 14; k++) {
                     attributes[2] = k;
-
-                    remove.setAttributeIndicesArray(attributes);
-                    remove.setInputFormat(testing_data);
-                    remove.setInputFormat(training_data);
+                    model.resetCoefficients();
+                    model.setToConsider(attributes);
                     model.gradientDescentAfterAlpha(training_data);
 
                     System.out.println(training_data.attribute(i).name() + " " + training_data.attribute(j).name() + " " + training_data.attribute(k).name() +

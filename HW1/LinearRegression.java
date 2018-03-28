@@ -12,9 +12,15 @@ public class LinearRegression implements Classifier {
 	private double[] m_coefficients;
 	private double m_alpha;
 
+    private int[] toConsider;
+
 
     public void setM_truNumAttributes(int m_truNumAttributes) {
         this.m_truNumAttributes = m_truNumAttributes;
+    }
+
+    public void setToConsider(int[] toConsider) {
+        this.toConsider = toConsider;
     }
 
     public double getM_alpha() {
@@ -104,8 +110,9 @@ public class LinearRegression implements Classifier {
     public double[] gradientDescentAfterAlpha(Instances trainingData) throws Exception {
         double[] temp = new double[m_coefficients.length];
         double prevError = calculateMSE(trainingData), currentError = 0;
+        int counter = 99;
 
-        for (int j = 0; j < 20000; j++) {
+        while (Math.abs(currentError - prevError) > 0.003){
 
             // For all thetas
             for (int k = 0; k < m_truNumAttributes; k++) {
@@ -117,14 +124,13 @@ public class LinearRegression implements Classifier {
                 m_coefficients[i] = temp[i];
             }
 
-            if (j % 100 == 0) {
+            if (counter == 100) {
                 currentError = calculateMSE(trainingData);
-                if (Math.abs(currentError - prevError) < 0.003) {
-                    return m_coefficients;
-                } else {
-                    prevError = currentError;
-                }
             }
+            if(counter == 200){
+                prevError = currentError;
+            }
+            counter++;
         }
         return m_coefficients;
     }
@@ -141,7 +147,7 @@ public class LinearRegression implements Classifier {
 	public double regressionPrediction(Instance instance) throws Exception {
         double result = m_coefficients[0];
         for (int i = 1; i < m_truNumAttributes; i++) {
-            result += m_coefficients[i] * instance.value(i-1);
+            result += m_coefficients[i] * instance.value(toConsider[i-1]);
         }
         return result;
 	}
