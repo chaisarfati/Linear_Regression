@@ -12,6 +12,7 @@ public class LinearRegression implements Classifier {
 	private double[] m_coefficients;
 	private double m_alpha;
 
+    // Features to consider
     private int[] toConsider;
 
 
@@ -90,7 +91,7 @@ public class LinearRegression implements Classifier {
 
             // For all thetas
             for (int k = 0; k < m_truNumAttributes; k++) {
-                temp[k] = m_coefficients[k] - m_alpha * adjustDirection(trainingData, k);
+                temp[k] = m_coefficients[k] - m_alpha * partialDerivative(trainingData, k);
             }
 
             // Update the actual thetas
@@ -116,7 +117,7 @@ public class LinearRegression implements Classifier {
 
             // For all thetas
             for (int k = 0; k < m_truNumAttributes; k++) {
-                temp[k] = m_coefficients[k] - m_alpha * adjustDirection(trainingData, k);
+                temp[k] = m_coefficients[k] - m_alpha * partialDerivative(trainingData, k);
             }
 
             // Update the actual thetas
@@ -179,13 +180,16 @@ public class LinearRegression implements Classifier {
      * @return
      * @throws Exception
      */
-	public double adjustDirection(Instances instances, int j) throws Exception {
+	public double partialDerivative(Instances instances, int j) throws Exception {
         double sum = 0;
+        // For theta0
         if(j==0){
             for (int i = 0; i < instances.numInstances(); i++) {
                 sum += (regressionPrediction(instances.instance(i)) - instances.instance(i).value(m_ClassIndex));
             }
-        }else {
+        }
+        // For all other thetas
+        else {
             for (int i = 0; i < instances.numInstances(); i++) {
                 sum += (regressionPrediction(instances.instance(i)) - instances.instance(i).value(m_ClassIndex))
                         * instances.instance(i).value(j-1);
@@ -199,7 +203,7 @@ public class LinearRegression implements Classifier {
      *
      */
     public void resetCoefficients(){
-        for (int i = 0; i < m_coefficients.length; i++) {
+        for (int i = 0; i < m_truNumAttributes; i++) {
             m_coefficients[i] = 1;
         }
     }
