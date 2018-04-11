@@ -11,9 +11,9 @@ public class LinearRegression implements Classifier {
 	private int m_truNumAttributes;
 	private double[] m_coefficients;
 	private double m_alpha;
-
     // Features to consider
     private int[] toConsider;
+
 
 
     public void setM_truNumAttributes(int m_truNumAttributes) {
@@ -48,6 +48,7 @@ public class LinearRegression implements Classifier {
         double[][] coeff = new double[17][m_truNumAttributes];
 
         for (int i = -17; i < 0; i++) {
+            resetCoefficients();
             m_alpha = Math.pow(3, i);
             gradientDescent(data);
             double prevError = calculateMSE(data), currentError = 0;
@@ -86,14 +87,12 @@ public class LinearRegression implements Classifier {
 	 * @throws Exception
 	 */
 	private double[] gradientDescent(Instances trainingData) throws Exception {
-
         double[] temp = new double[m_coefficients.length];
 
             // For all thetas
             for (int k = 0; k < m_truNumAttributes; k++) {
                 temp[k] = m_coefficients[k] - m_alpha * partialDerivative(trainingData, k);
             }
-
             // Update the actual thetas
             for (int i = 0; i < m_coefficients.length; i++) {
                 m_coefficients[i] = temp[i];
