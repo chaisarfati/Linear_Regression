@@ -5,6 +5,13 @@ pipeline {
   stages {
     
     stage("build"){
+      
+      when {
+        expression {
+         GIT_BRANCH == "develop"
+        }
+      }
+      
       steps {
         echo 'building app' 
       }
@@ -23,5 +30,23 @@ pipeline {
     }
     
   }
+  
+  post {
+   
+    always {
+     echo "Done" 
+    }
+    
+    success {
+     echo "It is a success" 
+    }
+    
+        
+    failure {
+     echo "It is a failure" 
+    }
+    
+  }
+  
   
 }
