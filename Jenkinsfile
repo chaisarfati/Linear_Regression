@@ -7,6 +7,7 @@ pipeline {
     stage("init") {
       steps {
         echo "Pipeline triggered"
+        sh "ls"
       }
     }
     
