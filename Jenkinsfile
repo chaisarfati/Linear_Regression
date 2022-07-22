@@ -2,6 +2,12 @@ pipeline {
   
   agent any
   
+  
+  parameters {
+   choice(name: 'VERSION', choices: ['1.0.0','2.0.0','3.0.0'] , description:"version to deploy on prod") 
+   booleanParam(name: 'executeTests', defaultValue: true, description:'')
+  }
+  
   stages {
     
     stage("init") {
@@ -20,11 +26,18 @@ pipeline {
       }
       
       steps {
-        echo 'building app' 
+        echo "building app with version ${VERSION}" 
       }
     }
     
     stage("test"){
+      
+      when {
+        expression {
+         params.executeTests == true
+        }
+      }
+      
       steps {
         echo 'testing app' 
       }
