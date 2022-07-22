@@ -6,7 +6,7 @@ pipeline {
     
     stage("init") {
       steps {
-        echo "Pipeline triggered on date ${TAG_DATE} (UNIX TIMESTAMP : ${TAG_UNIXTIME})" 
+        echo "Pipeline triggered"
       }
     }
     
