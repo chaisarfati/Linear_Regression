@@ -26,7 +26,7 @@ pipeline {
       }
       
       steps {
-        echo "building app with version ${VERSION}" 
+        echo "building app with version ${params.VERSION}" 
       }
     }
     
